@@ -1,0 +1,155 @@
+openapi: 3.1.0
+
+info:
+  title: go-kafka-demo rest api
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://go-kafka-demo.fly.dev
+    description: Production server
+
+paths:
+  /api/v1/job:
+    post:
+      summary: Create a new job
+      operationId: createJob
+      security:
+        - X-API-KEY: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobRequest"
+      responses:
+        201:
+          description: Created
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+                example: /api/v1/job/1
+        400:
+          description: Bad Request
+        401:
+          description: Unauthorized
+        500:
+          description: Internal Server Error
+  /api/v1/job/{id}:
+    get:
+      summary: Get a job
+      operationId: getJob
+      security:
+        - X-API-KEY: []
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        400:
+          description: Bad Request
+        401:
+          description: Unauthorized
+        404:
+          description: Not Found
+        500:
+          description: Internal Server Error
+  /api/v1/job/{id}/status:
+    put:
+      summary: Update a job status
+      operationId: updateJobStatus
+      security:
+        - X-API-KEY: []
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [hold, pending]
+              required:
+                - status
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        400:
+          description: Bad Request
+        401:
+          description: Unauthorized
+        404:
+          description: Not Found
+        500:
+          description: Internal Server Error
+
+components:
+  parameters:
+    JobId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    JobRequest:
+      type: object
+      properties:
+        target:
+          $ref: "#/components/schemas/Target"
+        message:
+          type: string
+        hold:
+          type: boolean
+          default: false
+      required:
+        - target
+        - message
+    Target:
+      type: string
+      enum: [a, b, c]
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [hold, pending, success, failed]
+        target:
+          $ref: "#/components/schemas/Target"
+        message:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - status
+        - target
+        - message
+        - created_at
+        - updated_at
+  securitySchemes:
+    X-API-KEY:
+      type: apiKey
+      name: X-API-KEY
+      in: header

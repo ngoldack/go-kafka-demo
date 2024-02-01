@@ -1,0 +1,20 @@
+VERSION 0.7
+FROM golang:1.21-alpine3.19
+WORKDIR /go-workdir
+
+deps:
+    COPY go.mod go.sum ./
+    RUN go mod download
+    SAVE ARTIFACT ./go.sum
+    SAVE ARTIFACT ./go.mod
+
+generate:
+    RUN go install github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen@latest
+    COPY ./api/gateway.openapi.yml ./api/
+    RUN oapi-codegen -generate types,chi-server,spec -package api -o ./api/api.gen.go ./api/gateway.openapi.yml
+    SAVE ARTIFACT ./api/api.gen.go AS LOCAL ./api/api.gen.go
+
+build:
+    FROM +deps
+    COPY . .
+    RUN go build -o ./bin/app ./cmd/app

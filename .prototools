@@ -1,0 +1,5 @@
+go = "1.21.6"
+earthly = "0.8.3"
+
+[plugins]
+earthly = "source:https://raw.githubusercontent.com/theomessin/proto-toml-plugins/master/earthly.toml"
